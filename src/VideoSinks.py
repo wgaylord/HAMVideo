@@ -1,4 +1,7 @@
 import cv2
+import numpy as np
+import struct
+import zmq
 
 class VideoSink:
     def __init__(self,name):
@@ -20,7 +23,7 @@ class VideoSink:
         
         
         
-class CV2VideoSink:
+class CV2VideoSink(VideoSink):
     def __init__(self,name):
         self.name = name + "-CV2"
         pass
@@ -37,20 +40,26 @@ class CV2VideoSink:
         
         
         
-class FileSink:
-    def __init__(self,name,filename):
-        self.name = name
-        pass
+class ZMQVideoSink(VideoSink):
+    def __init__(self,name,addr,port):
+        self.name = name + "-ZMQSink"
+        self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.PUB)
+        self.socket.bind("tcp://"+addr+":%s" % port)
+
         
     def writeFrame(self,frame):
-        pass
+        self.socket.send(np.packbits(frame/255))
+        
+    def writeLines(self,lines,number):
+        temp = np.packbits(lines/255)
+        temp[0] = number
+        self.socket.send(struct.pack("B"*2048,*temp))
+        #self.sock.sendto(struct.pack("B"*2048,*temp), (self.addr , self.port))
         
     def getName(self):
         return self.name
         
-    def start(self):
-        pass
         
     def stop(self):
-        pass
-        
+        self.sock.close()

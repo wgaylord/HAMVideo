@@ -83,3 +83,17 @@ def UnInterlace(frame,new_lines,even):
         frame[t*2:] = new_lines
         return frame
 
+font                   = cv2.FONT_HERSHEY_SIMPLEX
+bottomLeftCornerOfText = (0,25)
+fontScale              = 1
+fontColor              = (0,0,0)
+lineType               = 2
+
+def AddCall(frame,callsign):
+    cv2.putText(frame,callsign, 
+        bottomLeftCornerOfText, 
+        font, 
+        fontScale,
+        fontColor,
+        lineType)
+    return frame

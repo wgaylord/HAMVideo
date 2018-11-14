@@ -2,41 +2,35 @@ import VideoSources
 import VideoSinks
 import cv2
 import numpy as np
-from FrameProcessors import Dither,SHARPEN,Filter,Interlacer,UnInterlace
+from FrameProcessors importUnInterlace
 import helper
-import socket
+import struct
+import zmq
 
-
-
-videoSource = VideoSources.CV2WebCamSource("Test",0)
-videoSource.start()
 
 videoSinkInterlaced = VideoSinks.CV2VideoSink("Interlaced")
-videoSink = VideoSinks.CV2VideoSink("Test")
+
 
 frameCount = 0
 out = np.zeros((192,256))
+context = zmq.Context()
+socket = context.socket(zmq.SUB)
+socket.connect ("tcp://127.0.0.1:5000")
+socket.setsockopt(zmq.SUBSCRIBE, "")
 while(True):
-    frame = videoSource.getFrame()
-    frame = cv2.resize(frame, (256,192)) 
-    time.sleep(0.01)
-    # Our operations on the frame come here
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    gray = Filter(gray,SHARPEN)
-    gray =Dither(gray,10) 
-    #print frameCount
-    lines = Interlacer(gray,frameCount)
-    #print lines.shape
+    data = socket.recv()
+    #print len(data),len(data[10:])
+    data = struct.unpack("B"*2048,data)
+    #print data[7:]
+    frameCount = data[0]
     
+    lines = np.unpackbits(np.asarray(data,dtype=np.uint8))
+    #print lines
+    lines.shape = (64,256)
+    #print lines
     out = UnInterlace(out,lines,frameCount)
-    
-    frameCount +=1
-    if frameCount == 3:
-        frameCount = 0
-   
-    
-    videoSinkInterlaced.writeFrame(out)
-    videoSink.writeFrame(gray)
+    videoSinkInterlaced.writeFrame(out*255)
+
         
         
         
