@@ -2,7 +2,7 @@ import VideoSources
 import VideoSinks
 import cv2
 import numpy as np
-from FrameProcessors importUnInterlace
+from FrameProcessors import UnInterlace
 import helper
 import struct
 import zmq
@@ -15,7 +15,7 @@ frameCount = 0
 out = np.zeros((192,256))
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
-socket.connect ("tcp://127.0.0.1:5000")
+socket.connect ("tcp://127.0.0.1:5001")
 socket.setsockopt(zmq.SUBSCRIBE, "")
 while(True):
     data = socket.recv()
